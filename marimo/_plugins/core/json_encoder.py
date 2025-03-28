@@ -10,13 +10,22 @@ from typing import Any
 from uuid import UUID
 
 from marimo._dependencies.dependencies import DependencyManager
+from marimo._plugins.core.media import io_to_data_url
 
 
 class WebComponentEncoder(JSONEncoder):
+    def __init__(
+        self, includes_images: bool = False, *args: Any, **kwargs: Any
+    ):
+        super().__init__(*args, **kwargs)
+        self.includes_images = includes_images
+
     @staticmethod
-    def json_dumps(o: Any) -> Any:
+    def json_dumps(o: Any, includes_images: bool = False) -> Any:
         """Serialize an object to JSON."""
-        return json.dumps(o, cls=WebComponentEncoder)
+        return json.dumps(
+            o, cls=WebComponentEncoder, includes_images=includes_images
+        )
 
     def default(self, o: Any) -> Any:
         """Override default method to handle additional types."""
@@ -67,6 +76,16 @@ class WebComponentEncoder(JSONEncoder):
         # Handle range
         if isinstance(o, range):
             return list(o)
+
+        # Handle Pillow images
+        if DependencyManager.pillow.imported():
+            from PIL import Image
+
+            if isinstance(o, Image.Image):
+                if self.includes_images:
+                    return io_to_data_url(o, "image/png")
+                else:
+                    return repr(o)
 
         # Handle MIME objects
         if hasattr(o, "_mime_"):

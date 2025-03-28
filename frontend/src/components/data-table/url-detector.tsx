@@ -4,14 +4,18 @@ import { useState } from "react";
 
 const urlRegex = /(https?:\/\/\S+)/g;
 const imageRegex = /\.(png|jpe?g|gif|webp|svg|ico)(\?.*)?$/i;
-const dataImageRegex = /^data:image\//i;
+const dataImageRegex = /^"?data:image\//i;
 const knownImageDomains = ["avatars.githubusercontent.com"];
 
 const ImageWithFallback = ({ url }: { url: string }) => {
   const [error, setError] = useState(false);
-
   if (error) {
     return <URLAnchor url={url} />;
+  }
+
+  // If starts and ends with double quotes, remove them
+  if (url.startsWith('"') && url.endsWith('"')) {
+    url = url.slice(1, -1);
   }
 
   return (

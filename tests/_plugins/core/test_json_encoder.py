@@ -414,3 +414,22 @@ def test_range_encoding() -> None:
     r = range(10)
     encoded = json.dumps(r, cls=WebComponentEncoder)
     assert encoded == "[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]"
+
+
+@pytest.mark.skipif(
+    not DependencyManager.pillow.has(), reason="PIL not installed"
+)
+def test_pil_image_encoding() -> None:
+    from PIL import Image
+
+    # Create a simple PIL image
+    img = Image.new("RGB", (10, 10), color="red")
+
+    # Test direct encoding of PIL image
+    response = json.dumps(img, cls=WebComponentEncoder)
+    assert isinstance(response, str)
+    assert response.startswith('"<PIL.Image.Image')
+
+    response = json.dumps(img, cls=WebComponentEncoder, includes_images=True)
+    assert isinstance(response, str)
+    assert response.startswith('"data:image/png;base64,')

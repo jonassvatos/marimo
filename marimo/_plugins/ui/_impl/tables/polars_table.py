@@ -11,6 +11,7 @@ from marimo import _loggers
 from marimo._data.models import (
     ExternalDataType,
 )
+from marimo._plugins.core.json_encoder import WebComponentEncoder
 from marimo._plugins.ui._impl.tables.format import (
     FormatMapping,
     format_value,
@@ -159,7 +160,10 @@ class PolarsTableManagerFactory(TableManagerFactory):
                     return df.with_columns(
                         # As of writing this, cast(pl.String) doesn't work
                         # for pl.Object types, so we use map_elements
-                        column.map_elements(str, return_dtype=pl.String)
+                        column.map_elements(
+                            lambda x: WebComponentEncoder.json_dumps(x),
+                            return_dtype=pl.String,
+                        )
                     )
 
             def apply_formatting(
