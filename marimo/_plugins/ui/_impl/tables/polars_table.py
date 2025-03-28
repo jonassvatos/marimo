@@ -154,6 +154,13 @@ class PolarsTableManagerFactory(TableManagerFactory):
             def _cast_object_to_string(
                 self, df: pl.DataFrame, column: pl.Series
             ) -> pl.DataFrame:
+                def str_or_json(x: Any) -> str:
+                    if isinstance(x, str):
+                        return x
+                    return WebComponentEncoder.json_dumps(
+                        x, includes_images=True
+                    )
+
                 import warnings
 
                 with warnings.catch_warnings(record=True):
@@ -161,8 +168,7 @@ class PolarsTableManagerFactory(TableManagerFactory):
                         # As of writing this, cast(pl.String) doesn't work
                         # for pl.Object types, so we use map_elements
                         column.map_elements(
-                            lambda x: WebComponentEncoder.json_dumps(x),
-                            return_dtype=pl.String,
+                            str_or_json, return_dtype=pl.String
                         )
                     )
 

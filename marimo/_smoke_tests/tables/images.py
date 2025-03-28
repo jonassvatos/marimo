@@ -10,6 +10,7 @@ def _():
     from PIL import Image
     import io
     import requests
+    import pandas as pd
 
 
     def load_image(url):
@@ -22,16 +23,23 @@ def _():
     df = pl.DataFrame(
         {
             "id": [1, 2, 3],
+            "str": ["foo", "bar", "baz"],
             "image": [
-                load_image("https://picsum.photos/200"),
-                load_image("https://picsum.photos/200"),
-                load_image("https://picsum.photos/200"),
+                load_image("https://picsum.photos/400"),
+                load_image("https://picsum.photos/400"),
+                load_image("https://picsum.photos/400"),
             ],
         }
     )
 
     df
-    return Image, df, io, load_image, pl, requests
+    return Image, df, io, load_image, pd, pl, requests
+
+
+@app.cell
+def _(df):
+    df.to_pandas()
+    return
 
 
 @app.cell

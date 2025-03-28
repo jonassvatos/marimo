@@ -9,6 +9,7 @@ import narwhals.stable.v1 as nw
 
 from marimo import _loggers
 from marimo._data.models import ExternalDataType
+from marimo._plugins.core.json_encoder import WebComponentEncoder
 from marimo._plugins.ui._impl.tables.format import (
     FormatMapping,
     format_value,
@@ -78,6 +79,7 @@ class PandasTableManagerFactory(TableManagerFactory):
             ) -> bytes:
                 from pandas.api.types import (
                     is_complex_dtype,
+                    is_object_dtype,
                     is_timedelta64_dtype,
                     is_timedelta64_ns_dtype,
                 )
@@ -95,6 +97,16 @@ class PandasTableManagerFactory(TableManagerFactory):
                             dtype
                         ) or is_timedelta64_ns_dtype(dtype):
                             result[col] = result[col].apply(str)
+                        if is_object_dtype(dtype):
+
+                            def str_or_json(x: Any) -> str:
+                                if isinstance(x, str):
+                                    return x
+                                return WebComponentEncoder.json_dumps(
+                                    x, includes_images=True
+                                )
+
+                            result[col] = result[col].apply(str_or_json)
 
                 except Exception as e:
                     LOGGER.error(
